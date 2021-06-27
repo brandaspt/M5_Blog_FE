@@ -1,25 +1,24 @@
 import React, { Component } from "react"
 import "react-quill/dist/quill.snow.css"
 import ReactQuill from "react-quill"
-import { Container, Form, Button } from "react-bootstrap"
+import { Container, Form, Button, Spinner } from "react-bootstrap"
 import "./styles.css"
 import backend from "../../client"
+import { createRef } from "react"
 export default class NewBlogPost extends Component {
   state = {
     newPostPayload: {
       title: "",
       category: "News",
       cover: "",
-      readTime: {
-        value: 1,
-        unit: "min",
-      },
       authorId: "",
       content: "",
     },
     authors: [],
     selectedFile: "",
+    isLoading: false,
   }
+  fileInputRef = createRef()
 
   componentDidMount = () => {
     this.fetchAuthors()
@@ -30,29 +29,32 @@ export default class NewBlogPost extends Component {
     const data = response.data
     this.setState({
       authors: data,
-      newPostPayload: { ...this.state.newPostPayload, author: { name: `${data[0].name} ${data[0].surname}`, avatar: data[0].avatar } },
+      newPostPayload: { ...this.state.newPostPayload, authorId: data[0]._id },
     })
   }
 
   handleChangeAuthor = e => {
     const authorId = e.target.selectedOptions[0].id
-    const authorObj = this.state.authors.find(author => author._id === authorId)
 
     this.setState({
       newPostPayload: {
         ...this.state.newPostPayload,
-        authorId: authorObj._id,
+        authorId: authorId,
       },
     })
+  }
+  handleChooseFile = () => {
+    this.fileInputRef.current.click()
   }
 
   submitPost = async e => {
     e.preventDefault()
+    this.setState({ isLoading: true })
     const formData = new FormData()
     formData.append("postCover", this.state.selectedFile)
     const newPost = await backend.post("/blogPosts", this.state.newPostPayload)
-    console.log(newPost)
     await backend.post(`/blogPosts/${newPost.data._id}/uploadCover`, formData)
+    this.setState({ isLoading: false })
     this.props.history.push("/")
   }
 
@@ -84,45 +86,27 @@ export default class NewBlogPost extends Component {
             </Form.Control>
           </Form.Group>
           <Form.Group className="mt-3">
-            <Form.Label className="d-block">Cover</Form.Label>
-            <Form.Control type="file" required onChange={e => this.setState({ selectedFile: e.currentTarget.files[0] })} />
-          </Form.Group>
-          <Form.Group className="d-inline-block mt-3">
-            <Form.Label>Read Time</Form.Label>
             <Form.Control
-              size="lg"
+              type="file"
+              hidden
+              ref={this.fileInputRef}
               required
-              type="number"
-              min={1}
-              value={this.state.newPostPayload.readTime.value}
-              onChange={e =>
-                this.setState({
-                  newPostPayload: {
-                    ...this.state.newPostPayload,
-                    readTime: { ...this.state.newPostPayload.readTime, value: e.currentTarget.value },
-                  },
-                })
-              }
+              onChange={e => this.setState({ selectedFile: e.currentTarget.files[0] })}
+            />
+            <Button variant="dark" className="me-2" onClick={this.handleChooseFile}>
+              Upload Cover
+            </Button>
+            <Button variant="warning" onClick={() => this.setState({ selectedFile: "" })}>
+              Clear
+            </Button>
+            <img
+              src={this.state.selectedFile ? URL.createObjectURL(this.state.selectedFile) : "https://via.placeholder.com/200?text=Preview"}
+              height="200px"
+              alt="cover"
+              className="d-block mt-2"
             />
           </Form.Group>
-          <Form.Group className="d-inline-block">
-            <Form.Control
-              size="lg"
-              as="select"
-              value={this.state.newPostPayload.readTime.unit}
-              onChange={e =>
-                this.setState({
-                  newPostPayload: {
-                    ...this.state.newPostPayload,
-                    readTime: { ...this.state.newPostPayload.readTime, unit: e.currentTarget.value },
-                  },
-                })
-              }
-            >
-              <option>Min</option>
-              <option>Sec</option>
-            </Form.Control>
-          </Form.Group>
+
           <Form.Group className="mt-3">
             <Form.Label>Author</Form.Label>
             <Form.Control size="lg" as="select" onChange={this.handleChangeAuthor}>
@@ -142,11 +126,9 @@ export default class NewBlogPost extends Component {
             />
           </Form.Group>
           <Form.Group className="d-flex mt-3 justify-content-end">
-            <Button type="reset" size="lg" variant="outline-dark">
-              Reset
-            </Button>
-            <Button type="submit" size="lg" variant="dark" style={{ marginLeft: "1em" }}>
+            <Button type="submit" size="lg" variant="dark" className="d-flex align-items-center">
               Submit
+              {this.state.isLoading && <Spinner animation="border" variant="warning" className="ms-2" />}
             </Button>
           </Form.Group>
         </Form>

@@ -11,7 +11,9 @@ export default class NavBar extends Component {
           <Navbar.Brand as={Link} to="/">
             <img className="blog-navbar-brand" alt="logo" src={logo} />
           </Navbar.Brand>
-
+          <Button as={Link} to="/authors" variant="secondary" size="lg">
+            Authors
+          </Button>
           <Button as={Link} to="/new" className="blog-navbar-add-button bg-dark" size="lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"

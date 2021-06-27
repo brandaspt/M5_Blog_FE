@@ -1,0 +1,41 @@
+.author-card .edit-pic-btn {
+  position: absolute;
+  top: 0px;
+  left: 50px;
+  font-size: 20px;
+  opacity: 0;
+  cursor: pointer;
+  transition: 0.5s;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+}
+.author-card:hover .edit-pic-btn {
+  opacity: 1;
+}
+.author-card .card-title {
+  font-size: 1.2em;
+}
+.new-author-btn {
+  font-size: 200px;
+  color: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.author-card .author-avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+.author-card input {
+  border: none;
+  border-bottom: 1px dashed grey;
+  text-align: center;
+}
+.author-card input:focus {
+  border: none;
+  border-bottom: 1px dashed grey;
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.07);
+}
+.new-author-form .form-group {
+  margin-bottom: 5px;
+}
