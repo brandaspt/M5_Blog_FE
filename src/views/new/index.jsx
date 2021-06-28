@@ -6,8 +6,10 @@ import "./styles.css"
 import backend from "../../client"
 import { createRef } from "react"
 export default class NewBlogPost extends Component {
+  postId = this.props.match.params.id
+
   state = {
-    newPostPayload: {
+    payload: {
       title: "",
       category: "News",
       cover: "",
@@ -21,6 +23,7 @@ export default class NewBlogPost extends Component {
   fileInputRef = createRef()
 
   componentDidMount = () => {
+    if (this.postId) this.fetchPost()
     this.fetchAuthors()
   }
 
@@ -29,20 +32,23 @@ export default class NewBlogPost extends Component {
     const data = response.data
     this.setState({
       authors: data,
-      newPostPayload: { ...this.state.newPostPayload, authorId: data[0]._id },
+      payload: { ...this.state.payload, authorId: this.state.payload.authorId || data[0]._id },
     })
   }
-
-  handleChangeAuthor = e => {
-    const authorId = e.target.selectedOptions[0].id
-
+  fetchPost = async () => {
+    const response = await backend.get(`blogPosts/${this.postId}`)
+    const data = response.data
     this.setState({
-      newPostPayload: {
-        ...this.state.newPostPayload,
-        authorId: authorId,
+      payload: {
+        title: data.title,
+        category: data.category,
+        cover: data.cover,
+        content: data.content,
+        authorId: data.authorId,
       },
     })
   }
+
   handleChooseFile = () => {
     this.fileInputRef.current.click()
   }
@@ -52,8 +58,13 @@ export default class NewBlogPost extends Component {
     this.setState({ isLoading: true })
     const formData = new FormData()
     formData.append("postCover", this.state.selectedFile)
-    const newPost = await backend.post("/blogPosts", this.state.newPostPayload)
-    await backend.post(`/blogPosts/${newPost.data._id}/uploadCover`, formData)
+    let newPost
+    if (this.postId) {
+      newPost = await backend.put(`/blogPosts/${this.postId}`, this.state.payload)
+    } else {
+      newPost = await backend.post("/blogPosts", this.state.payload)
+    }
+    this.state.selectedFile && (await backend.post(`/blogPosts/${newPost.data._id}/uploadCover`, formData))
     this.setState({ isLoading: false })
     this.props.history.push("/")
   }
@@ -67,8 +78,8 @@ export default class NewBlogPost extends Component {
             <Form.Control
               size="lg"
               required
-              value={this.state.newPostPayload.title}
-              onChange={e => this.setState({ newPostPayload: { ...this.state.newPostPayload, title: e.currentTarget.value } })}
+              value={this.state.payload.title}
+              onChange={e => this.setState({ payload: { ...this.state.payload, title: e.currentTarget.value } })}
             />
           </Form.Group>
           <Form.Group className="mt-3">
@@ -76,8 +87,8 @@ export default class NewBlogPost extends Component {
             <Form.Control
               size="lg"
               as="select"
-              value={this.state.newPostPayload.category}
-              onChange={e => this.setState({ newPostPayload: { ...this.state.newPostPayload, category: e.currentTarget.value } })}
+              value={this.state.payload.category}
+              onChange={e => this.setState({ payload: { ...this.state.payload, category: e.currentTarget.value } })}
             >
               <option>News</option>
               <option>Students Stories</option>
@@ -90,7 +101,6 @@ export default class NewBlogPost extends Component {
               type="file"
               hidden
               ref={this.fileInputRef}
-              required
               onChange={e => this.setState({ selectedFile: e.currentTarget.files[0] })}
             />
             <Button variant="dark" className="me-2" onClick={this.handleChooseFile}>
@@ -100,7 +110,11 @@ export default class NewBlogPost extends Component {
               Clear
             </Button>
             <img
-              src={this.state.selectedFile ? URL.createObjectURL(this.state.selectedFile) : "https://via.placeholder.com/200?text=Preview"}
+              src={
+                this.state.selectedFile
+                  ? URL.createObjectURL(this.state.selectedFile)
+                  : this.state.payload.cover || "https://via.placeholder.com/200?text=Preview"
+              }
               height="200px"
               alt="cover"
               className="d-block mt-2"
@@ -109,19 +123,25 @@ export default class NewBlogPost extends Component {
 
           <Form.Group className="mt-3">
             <Form.Label>Author</Form.Label>
-            <Form.Control size="lg" as="select" onChange={this.handleChangeAuthor}>
+            <Form.Control
+              size="lg"
+              as="select"
+              value={this.state.payload.authorId}
+              onChange={e => this.setState({ payload: { ...this.state.payload, authorId: e.currentTarget.value } })}
+            >
               {this.state.authors.map(author => (
-                <option id={author._id} key={author._id}>
+                <option value={author._id} key={author._id}>
                   {author.name} {author.surname}
                 </option>
               ))}
             </Form.Control>
           </Form.Group>
+
           <Form.Group className="mt-3">
             <Form.Label>Blog Content</Form.Label>
             <ReactQuill
-              value={this.state.newPostPayload.content}
-              onChange={value => this.setState({ newPostPayload: { ...this.state.newPostPayload, content: value } })}
+              value={this.state.payload.content}
+              onChange={value => this.setState({ payload: { ...this.state.payload, content: value } })}
               className="new-blog-content"
             />
           </Form.Group>
