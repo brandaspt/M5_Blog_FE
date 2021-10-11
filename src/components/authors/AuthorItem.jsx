@@ -83,24 +83,26 @@ class AuthorItem extends Component {
               }}
             />
           </Card.Text>
-          <Card.Text as="div" className="m-0">
-            <span>DoB:</span>
-            <input
-              type="text"
-              className="d-inline-block ms-1"
-              defaultValue={dob}
-              size={dob.length + 1}
-              onChange={e => (e.currentTarget.style.width = e.currentTarget.value.length + 2 + "ch")}
-              onBlur={e => {
-                this.handleAuthorUpdate(e, "dob")
-              }}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  e.currentTarget.blur()
-                }
-              }}
-            />
-          </Card.Text>
+          {dob && (
+            <Card.Text as="div" className="m-0">
+              <span>DoB:</span>
+              <input
+                type="text"
+                className="d-inline-block ms-1"
+                defaultValue={new Date(dob).toLocaleDateString()}
+                size={new Date(dob).toLocaleDateString().length + 1}
+                onChange={e => (e.currentTarget.style.width = e.currentTarget.value.length + 2 + "ch")}
+                onBlur={e => {
+                  this.handleAuthorUpdate(e, "dob")
+                }}
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur()
+                  }
+                }}
+              />
+            </Card.Text>
+          )}
         </Card.Body>
         <Card.Footer>
           <Button variant="danger" className="btn-sm" onClick={this.handleDeleteAuthor}>
