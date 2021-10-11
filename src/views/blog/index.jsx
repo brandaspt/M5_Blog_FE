@@ -46,7 +46,7 @@ class Blog extends Component {
 
             <div className="blog-details-container">
               <div className="blog-details-author">
-                <BlogAuthor authorId={blog.author._id} />
+                <BlogAuthor authorId={blog.author} />
               </div>
               <div className="blog-details-info">
                 <div>{new Date(blog.createdAt).toDateString()}</div>
