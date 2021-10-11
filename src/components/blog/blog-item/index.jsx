@@ -15,7 +15,7 @@ export default class BlogItem extends Component {
             <Card.Text className="text-end">{readTime}</Card.Text>
           </Card.Body>
           <Card.Footer>
-            <BlogAuthor authorId={author} />
+            <BlogAuthor authorId={author._id} />
           </Card.Footer>
         </Card>
       </Link>
